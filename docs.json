@@ -1,35 +1,47 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Alto CERO 2.0 Documentation",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
+  "ignorePatterns": ["alto-cero-infra/**", "node_modules/**", ".git/**"],
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "User Guide",
         "groups": [
           {
             "group": "Get Started",
             "pages": [
-              "introduction",
-              "quickstart",
-              "development"
+              "index",
+              "getting-started/quickstart",
+              "getting-started/key-concepts",
+              "getting-started/demo-environment"
             ]
           },
           {
-            "group": "Essentials",
+            "group": "Architecture",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+              "architecture/overview",
+              "architecture/data-flow",
+              "architecture/security",
+              "architecture/scalability"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "components/overview"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/overview"
             ]
           }
         ]
@@ -38,17 +50,9 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint Examples",
+            "group": "Endpoints",
             "pages": [
               "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
             ]
           }
@@ -58,19 +62,9 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "GitHub Repository",
+          "href": "https://github.com/AltotechTH/alto-cero-infra",
+          "icon": "github"
         }
       ]
     }
@@ -83,20 +77,18 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@altotech.ai"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://dash.altotech.ai"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "linkedin": "https://linkedin.com/company/altotech"
     }
   }
 }

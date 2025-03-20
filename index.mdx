@@ -1,0 +1,108 @@
+---
+title: 'Alto CERO 2.0 Platform'
+description: 'Intelligent Building Automation and Chiller Plant Management System'
+---
+<div className="flex justify-center mb-8">
+  <img className="block dark:hidden" src="/logo/light.svg" alt="Alto CERO Logo" width="100" />
+  <img className="hidden dark:block" src="/logo/dark.svg" alt="Alto CERO Logo" width="100" />
+</div>
+
+# Welcome to Alto CERO 2.0
+
+Alto CERO 2.0 is an advanced Chiller Plant Management System (CPMS) designed to optimize building operations, reduce energy consumption, and provide comprehensive monitoring and control capabilities for commercial and industrial buildings.
+
+## System Overview
+
+<CardGroup cols={2}>
+  <Card
+    title="Intelligent Automation"
+    icon="robot"
+    href="/getting-started/key-concepts"
+  >
+    AI-driven control strategies that optimize chiller plant operations and energy usage in real-time.
+  </Card>
+  <Card
+    title="IoT Integration"
+    icon="microchip"
+    href="/components/volttron/bacnet-integration"
+  >
+    Seamless integration with building equipment via BACnet and other industry-standard protocols.
+  </Card>
+  <Card
+    title="Comprehensive Analytics"
+    icon="chart-line"
+    href="/components/frontend/alto-dash"
+  >
+    Advanced analytics and visualization tools for performance tracking and optimization.
+  </Card>
+  <Card
+    title="Modular Architecture"
+    icon="cubes"
+    href="/architecture/overview"
+  >
+    Flexible, microservices-based system that can be customized for different building types and needs.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+- **Centralized Control**: Unified interface for monitoring and managing all aspects of chiller plant operations
+- **Energy Optimization**: AI-driven recommendations and automated control to maximize energy efficiency
+- **Predictive Maintenance**: Early detection of equipment issues before they cause failures
+- **Historical Data Analysis**: Deep insights into system performance for continuous improvement
+- **Real-time Monitoring**: Instant visibility into system status and performance metrics
+- **Robust Security**: Enterprise-grade security measures to protect sensitive building systems
+- **Scalable Architecture**: From single buildings to large multi-site deployments
+
+## System Requirements
+
+<Tabs>
+  <Tab title="Hardware Requirements">
+    **Minimum Hardware Requirements**:
+    - CPU: 4+ cores
+    - RAM: 16+ GB
+    - Storage: 500+ GB SSD
+    - Network: 1 Gbps Ethernet
+  </Tab>
+  <Tab title="Software Requirements">
+    **Software Dependencies**:
+    - Docker & Docker Compose
+    - Python 3.9+
+    - Node.js 16+
+    - Git
+  </Tab>
+  <Tab title="Network Requirements">
+    **Network Configuration**:
+    - Static IP address
+    - Open ports: 80, 443, 1883, 8883
+    - Internet connectivity for cloud features
+    - Access to BACnet network
+  </Tab>
+</Tabs>
+
+## Getting Started
+
+<Steps>
+  <Step title="Review Prerequisites">
+    Ensure your system meets the [requirements](/installation/prerequisites) for running Alto CERO.
+  </Step>
+  <Step title="Installation">
+    Follow our [quickstart guide](/getting-started/quickstart) to install the system.
+  </Step>
+  <Step title="Configuration">
+    Configure the system for your specific building with our [configuration guides](/configuration/site-configuration/site-config-basics).
+  </Step>
+  <Step title="Deployment">
+    Deploy the system to your production environment following best practices.
+  </Step>
+</Steps>
+
+## Architecture Diagram
+
+<Frame>
+  <img src="/images/architecture-overview.png" alt="Alto CERO 2.0 Architecture" />
+</Frame>
+
+<Note>
+  This documentation is comprehensive but continuously evolving. If you find something missing or unclear, please [contact our support team](mailto:support@altotech.ai).
+</Note> 

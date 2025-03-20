@@ -1,0 +1,7 @@
+# Ignore the alto-cero-infra directory
+alto-cero-infra/
+
+# Ignore other potential submodules
+node_modules/
+.git/
+.gitmodules 

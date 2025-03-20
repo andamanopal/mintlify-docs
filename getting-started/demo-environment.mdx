@@ -1,0 +1,112 @@
+---
+title: 'Demo Environment'
+description: 'Setting up a demo environment for Alto CERO 2.0'
+---
+
+# Demo Environment
+
+This guide will help you set up a demo environment for Alto CERO 2.0, allowing you to test the system with simulated data.
+
+## Overview
+
+The demo environment provides a fully functional Alto CERO 2.0 system with simulated building equipment data. This allows you to explore the user interface, test the system's features, and understand how the different components work together without needing actual hardware.
+
+## Prerequisites
+
+- A system that meets the [minimum requirements](/installation/prerequisites)
+- Docker and Docker Compose installed
+- Git installed
+- 30-60 minutes of time to complete the setup
+
+## Setting Up the Demo Environment
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/AltotechTH/alto-cero-infra.git
+    cd alto-cero-infra
+    ```
+  </Step>
+  <Step title="Initialize Submodules">
+    ```bash
+    git submodule update --init --recursive
+    ```
+  </Step>
+  <Step title="Configure for Demo Mode">
+    ```bash
+    cp .env.template .env
+    ```
+    
+    Edit the `.env` file and set the following parameter:
+    
+    ```
+    DEMO_MODE=true
+    ```
+  </Step>
+  <Step title="Start the Demo Environment">
+    ```bash
+    ./scripts/demo_setup.sh
+    ```
+    
+    This script will:
+    1. Configure the system for demo mode
+    2. Start all required containers
+    3. Load sample building data
+    4. Configure simulated equipment
+  </Step>
+</Steps>
+
+## Accessing the Demo Environment
+
+Once the setup is complete, you can access the following interfaces:
+
+- **Alto CERO Interface**: [http://localhost:3000](http://localhost:3000)
+- **Alto Dash**: [http://localhost:8801](http://localhost:8801)
+- **API Documentation**: [http://localhost:8001/api/docs](http://localhost:8001/api/docs)
+
+Use the following demo credentials:
+- Username: `demo@altotech.ai`
+- Password: `demo123`
+
+## Demo Features
+
+The demo environment includes:
+
+<CardGroup cols={2}>
+  <Card title="Sample Building" icon="building">
+    A virtual office building with a complete chiller plant setup
+  </Card>
+  <Card title="Historical Data" icon="chart-line">
+    Pre-loaded historical data for trend analysis
+  </Card>
+  <Card title="Simulated Alarms" icon="bell">
+    Periodically generated alarms to test alarm management
+  </Card>
+  <Card title="Optimization Scenarios" icon="gears">
+    Predefined scenarios to demonstrate energy optimization
+  </Card>
+</CardGroup>
+
+## Exploring the Demo
+
+Here are some tasks you can perform to explore the demo environment:
+
+1. **View Equipment Status**: Navigate to the Equipment page to see the status of chillers, pumps, and cooling towers
+2. **Analyze Historical Trends**: Go to Historical Data and select different equipment points to visualize trends
+3. **Test Control Operations**: Try starting/stopping equipment or changing setpoints
+4. **Handle Alarms**: Acknowledge and respond to simulated alarms
+5. **View Reports**: Check out the predefined energy and efficiency reports
+
+## Resetting the Demo
+
+If you want to reset the demo environment to its initial state:
+
+```bash
+./scripts/demo_reset.sh
+```
+
+## Next Steps
+
+- [Learn about the key concepts](/getting-started/key-concepts) of the Alto CERO 2.0 platform
+- [Set up a production environment](/installation/environment-setup) for real-world deployment
+- [Configure your own site](/configuration/site-configuration/site-config-basics) with custom equipment 

@@ -1,0 +1,354 @@
+---
+title: 'Site Configuration Basics'
+description: 'Learn how to configure Alto CERO 2.0 for a specific site'
+---
+
+# Site Configuration Basics
+
+Properly configuring Alto CERO 2.0 for a specific site is essential for optimal performance. This guide covers the basics of site configuration, including file structure, key parameters, and best practices.
+
+## Configuration File Structure
+
+Site configurations in Alto CERO 2.0 are stored in YAML files within the `site_configs` directory. Each site has its own configuration file, typically named after the site (e.g., `site1.yaml`).
+
+```
+site_configs/
+├── site1.yaml
+├── site2.yaml
+└── templates/
+    ├── default.yaml
+    ├── office_building.yaml
+    └── data_center.yaml
+```
+
+## Basic Site Configuration
+
+A site configuration file defines the site details, equipment, and points that Alto CERO 2.0 will monitor and control. Here's a basic example:
+
+```yaml
+# Site details
+site:
+  id: "site1"
+  name: "Office Building A"
+  location:
+    address: "123 Main St, Singapore"
+    latitude: 1.3521
+    longitude: 103.8198
+    timezone: "Asia/Singapore"
+  contact:
+    name: "John Smith"
+    email: "john.smith@example.com"
+    phone: "+6512345678"
+
+# Network configuration
+network:
+  bacnet:
+    device_id: 1001
+    network_number: 10
+    address: "192.168.1.10"
+    port: 47808
+    bbmd_address: "192.168.1.1"
+    bbmd_port: 47808
+
+# Data collection settings
+data_collection:
+  polling_interval: 300  # seconds
+  historian:
+    enabled: true
+    buffer_size: 10000
+    flush_interval: 60  # seconds
+
+# Equipment configuration follows below...
+```
+
+## Configuring Equipment
+
+Equipment is defined in the `equipment` section of the configuration file. Each piece of equipment has a type, name, and associated points.
+
+```yaml
+equipment:
+  - id: "chiller1"
+    type: "chiller"
+    name: "Chiller 1"
+    manufacturer: "Carrier"
+    model: "30XA-1152"
+    capacity: 1152  # refrigeration tons
+    bacnet_device_id: 100
+    points:
+      - name: "status_read"
+        bacnet_object_type: "binary-input"
+        bacnet_object_id: 1
+        description: "Chiller running status"
+        
+      - name: "power"
+        bacnet_object_type: "analog-input"
+        bacnet_object_id: 2
+        description: "Power consumption"
+        unit: "kW"
+        scaling_factor: 1.0
+        
+      - name: "efficiency"
+        bacnet_object_type: "analog-input"
+        bacnet_object_id: 3
+        description: "Chiller efficiency"
+        unit: "kW/RT"
+        scaling_factor: 1.0
+        
+      # ... more points
+
+  - id: "pchp1"
+    type: "pchp"
+    name: "Primary Chilled Water Pump 1"
+    bacnet_device_id: 200
+    points:
+      # ... pump points
+      
+  # ... more equipment
+```
+
+## Point Configuration
+
+Each point represents a specific data point collected from equipment. Points are configured with the following properties:
+
+<ResponseField name="name" type="string" required>
+  The internal name of the point, matching the schema in `model_schema.yaml`
+</ResponseField>
+
+<ResponseField name="bacnet_object_type" type="string" required>
+  The BACnet object type (e.g., analog-input, binary-input)
+</ResponseField>
+
+<ResponseField name="bacnet_object_id" type="integer" required>
+  The BACnet object ID
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  A human-readable description of the point
+</ResponseField>
+
+<ResponseField name="unit" type="string">
+  The unit of measurement
+</ResponseField>
+
+<ResponseField name="scaling_factor" type="number">
+  A scaling factor to apply to the raw value
+</ResponseField>
+
+<ResponseField name="read_only" type="boolean">
+  Whether the point is read-only (default: true)
+</ResponseField>
+
+## Control Points
+
+Control points are points that can be written to (e.g., setpoints, control commands). They have additional configuration:
+
+```yaml
+- name: "setpoint_write"
+  bacnet_object_type: "analog-output"
+  bacnet_object_id: 10
+  description: "Chilled water temperature setpoint"
+  unit: "°C"
+  scaling_factor: 1.0
+  read_only: false  # This is a writable point
+  min_value: 5.0
+  max_value: 10.0
+  default_value: 6.5
+  priority: 8  # BACnet priority
+```
+
+## Virtual Points
+
+Virtual points are calculated or derived values that are not directly read from equipment:
+
+```yaml
+- name: "efficiency_calculated"
+  description: "Calculated efficiency based on power and cooling rate"
+  unit: "kW/RT"
+  formula: "points.power / points.cooling_rate"
+  dependencies:
+    - "power"
+    - "cooling_rate"
+```
+
+## Plant Configuration
+
+The `plant` section defines the overall chiller plant configuration:
+
+```yaml
+plant:
+  id: "plant1"
+  name: "Main Chiller Plant"
+  description: "Primary cooling plant for the building"
+  equipment:
+    chillers:
+      - "chiller1"
+      - "chiller2"
+      - "chiller3"
+    pchps:
+      - "pchp1"
+      - "pchp2"
+    schps:
+      - "schp1"
+      - "schp2"
+    cdps:
+      - "cdp1"
+      - "cdp2"
+    cts:
+      - "ct1"
+      - "ct2"
+  design_capacity: 3500  # RT
+  design_efficiency: 0.65  # kW/RT
+```
+
+## Equipment Relationships
+
+The `relationships` section defines how equipment is connected:
+
+```yaml
+relationships:
+  - from:
+      equipment_id: "chiller1"
+      connection_point: "evaporator"
+    to:
+      equipment_id: "pchp1"
+      connection_point: "discharge"
+    relationship_type: "water_flow"
+    
+  - from:
+      equipment_id: "chiller1"
+      connection_point: "condenser"
+    to:
+      equipment_id: "cdp1"
+      connection_point: "discharge"
+    relationship_type: "water_flow"
+    
+  # ... more relationships
+```
+
+## Optimization Settings
+
+The `optimization` section defines settings for the optimization algorithms:
+
+```yaml
+optimization:
+  enabled: true
+  mode: "efficiency"  # efficiency, cost, or balanced
+  constraints:
+    min_chilled_water_temp: 5.5  # °C
+    max_chilled_water_temp: 8.0  # °C
+    min_condenser_water_temp: 28.0  # °C
+    max_condenser_water_temp: 35.0  # °C
+  schedules:
+    - name: "Working Hours"
+      days:
+        - "Monday"
+        - "Tuesday"
+        - "Wednesday"
+        - "Thursday"
+        - "Friday"
+      start_time: "08:00"
+      end_time: "18:00"
+      setpoints:
+        chilled_water_temp: 6.5  # °C
+```
+
+## Alarming Configuration
+
+The `alarms` section defines alarm thresholds and notifications:
+
+```yaml
+alarms:
+  - point:
+      equipment_id: "chiller1"
+      point_name: "evap_leaving_water_temperature"
+    conditions:
+      - type: "lower_threshold"
+        severity: "high"
+        threshold: 5.0
+        message: "Evaporator leaving water temperature below minimum threshold"
+      - type: "upper_threshold"
+        severity: "medium"
+        threshold: 8.0
+        message: "Evaporator leaving water temperature above maximum threshold"
+    notifications:
+      email:
+        - "operator@example.com"
+      sms:
+        - "+6512345678"
+```
+
+## Step-by-Step Configuration
+
+<Steps>
+  <Step title="Create a new site configuration file">
+    ```bash
+    cp site_configs/templates/default.yaml site_configs/new_site.yaml
+    ```
+  </Step>
+  <Step title="Edit site details">
+    Update the `site` section with the correct site details, including ID, name, location, and contact information.
+  </Step>
+  <Step title="Configure network settings">
+    Update the `network` section with the correct BACnet network settings for the site.
+  </Step>
+  <Step title="Define equipment">
+    Add equipment definitions to the `equipment` section, including IDs, types, and BACnet device IDs.
+  </Step>
+  <Step title="Configure points">
+    For each piece of equipment, configure the points to be monitored or controlled, including BACnet object types and IDs.
+  </Step>
+  <Step title="Define plant configuration">
+    Configure the overall plant in the `plant` section, defining equipment relationships.
+  </Step>
+  <Step title="Set up optimization">
+    Configure optimization settings in the `optimization` section.
+  </Step>
+  <Step title="Configure alarms">
+    Define alarm thresholds and notifications in the `alarms` section.
+  </Step>
+  <Step title="Validate the configuration">
+    ```bash
+    ./scripts/validate_config.sh site_configs/new_site.yaml
+    ```
+  </Step>
+</Steps>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Templates">
+    Start with a template configuration file that matches your site type (office building, data center, etc.) and customize as needed.
+  </Accordion>
+  <Accordion title="Document Everything">
+    Add descriptive comments to your configuration file to explain non-obvious settings and decisions.
+  </Accordion>
+  <Accordion title="Use Consistent Naming">
+    Follow a consistent naming convention for equipment IDs and point names to make the configuration more maintainable.
+  </Accordion>
+  <Accordion title="Start Simple">
+    Begin with basic configuration and gradually add more complex features as you verify that the basic functionality works correctly.
+  </Accordion>
+  <Accordion title="Validate Configuration">
+    Always validate your configuration file using the provided validation script before deploying it.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<ResponseField name="Validation Errors">
+  If the validation script reports errors, check the error message for the location of the error in the configuration file and fix it.
+</ResponseField>
+
+<ResponseField name="Missing Data">
+  If data is not being collected for a point, verify that the BACnet object type and ID are correct, and that the equipment is communicating on the network.
+</ResponseField>
+
+<ResponseField name="Scaling Issues">
+  If values seem incorrect, check the scaling factor for the point. Some BACnet devices report values in different units or scales.
+</ResponseField>
+
+## Next Steps
+
+- Learn about [device mapping](/configuration/site-configuration/device-mapping) for different equipment types
+- Explore [sample configurations](/configuration/site-configuration/sample-configs) for different building types
+- Configure [deployment services](/configuration/deployment-config/services) for your site 

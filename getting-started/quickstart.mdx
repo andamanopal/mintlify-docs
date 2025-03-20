@@ -1,0 +1,264 @@
+---
+title: 'Quickstart Guide'
+description: 'Get up and running with Alto CERO 2.0 in minutes'
+---
+
+This guide will help you quickly set up a working Alto CERO 2.0 environment for development or evaluation purposes.
+
+## Prerequisites
+
+Before beginning the installation, ensure your system meets these requirements:
+
+- Linux-based operating system (Ubuntu 20.04+ recommended)
+- Docker and Docker Compose installed
+- Git installed
+- Minimum 16GB RAM and 4 CPU cores
+- 100GB+ free disk space
+- Internet connection
+
+## Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/AltotechTH/alto-cero-infra.git
+cd alto-cero-infra
+```
+
+## Step 2: Initialize Submodules
+
+```bash
+git submodule update --init --recursive
+```
+
+This will clone all the required submodules:
+- alto_os
+- alto-dash
+- alto-ml-service
+- supabase
+- alto-cero-interface
+- alto-cero-automation-backend
+
+## Step 3: Configure Environment
+
+```bash
+cp .env.template .env
+```
+
+Edit the `.env` file to configure your environment settings:
+
+```bash
+# Infrastructure
+DEVICE_ID="device_id"  # Convention: "<site_id>-iot-gateway" or "<site_id>-ai-gateway"
+ENVIRONMENT="environment(staging, production, dev)"
+DEVICE_TYPE="device_type(iotgateway, aigateway)"
+TIMESCALEDB_PASSWORD=Magicalmint@636
+TIMESCALEDB_DATABASE=postgres
+
+
+# (Optional) Azure IoT Hub
+PROVISIONING_HOST="provisioning_host"
+PROVISIONING_IDSCOPE="provisioning_idscope"
+PROVISIONING_GROUP_PRIMARY_KEY="provisioning_group_primary_key"
+IOT_HUB_NAME="iot_hub_name"
+IOT_HUB_CONNECTION_STRING="iot_hub_connection_string"
+
+
+# Alto CERO Interface .env
+VITE_DJANGO_API_URL=
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=YOUR-SUPABASE-ANON-KEY
+VITE_ALTO_DASH_URL=
+VITE_APP_NAME=CPMS
+VITE_APP_VERSION=1.0.0
+VITE_SHOW_MAP=true
+VITE_SHOW_DASHBOARD=true
+VITE_SHOW_HISTORICAL_DATA=true
+VITE_SHOW_MAINTENANCE=true
+VITE_SHOW_ANALYTICS=true
+VITE_SHOW_AUTOPILOT=true
+VITE_SHOW_SETTINGS=true
+VITE_SHOW_SAVING_REPORT=true
+VITE_SHOW_TECHNICAL_REPORT=true
+VITE_SHOW_AFDD=true
+
+
+# Alto CERO Automation Backend
+DJANGO_POSTGRES_DB=postgres
+DJANGO_POSTGRES_USER=supabase_admin
+DJANGO_POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+DJANGO_POSTGRES_PORT=5432
+DJANGO_POSTGRES_HOST=supabase-db
+AZURE_IOT_HUB_CONNECTION_STRING=''
+MONGODB_URI=mongodb://infra_mongodb:27017/
+TIMESCALEDB_HOST=infra_timescaledb
+TIMESCALEDB_PORT=5432
+TIMESCALEDB_USER=postgres
+```
+
+## Step 4: Run Installation Script
+
+For a complete installation including all dependencies:
+
+```bash
+./scripts/install.sh --site_id <your_site_id> [--with-azure]
+```
+
+<Warning>
+  The installation script requires sudo access to install dependencies and configure system settings.
+</Warning>
+
+### Installation Process Details
+
+The installation script performs a series of steps to set up the Alto CERO Chiller infrastructure:
+
+1. **Validation**: Checks that the site configuration exists for your specified `site_id`
+2. **Dependencies**: Installs required dependencies including `jq`, `python3`, and necessary Python packages
+3. **Sequential Installation**: Executes the following scripts in order:
+
+<Steps>
+  <Step title="Initialize Submodules">
+    Initializes and updates all required git submodules
+    <Accordion title="Script: 00_init-submodules.sh">
+    ```bash
+    sudo bash $WORKING_DIR/scripts/installation_scripts/00_init-submodules.sh
+    ```
+    Updates and initializes all git submodules required for the project.
+    </Accordion>
+  </Step>
+  <Step title="Install Docker">
+    Installs Docker and Docker Compose for containerization
+    <Accordion title="Script: 01_install-docker.sh">
+    ```bash
+    sudo bash $WORKING_DIR/scripts/installation_scripts/01_install-docker.sh
+    ```
+    Installs Docker, Docker Compose, and configures them for use with Alto CERO.
+    </Accordion>
+  </Step>
+  <Step title="Install VOLTTRON">
+    Sets up the VOLTTRON platform for distributed control
+    <Accordion title="Script: 02_install-volttron.sh">
+    ```bash
+    bash $WORKING_DIR/scripts/installation_scripts/02_install-volttron.sh
+    source $WORKING_DIR/volttron/env/bin/activate
+    ```
+    Installs the VOLTTRON platform and activates its virtual environment.
+    </Accordion>
+  </Step>
+  <Step title="Install Core Components">
+    Installs the core Alto CERO components with your site configuration
+    <Accordion title="Script: 03_install-core.sh">
+    ```bash
+    bash $WORKING_DIR/scripts/installation_scripts/03_install-core.sh --site_id $site_id
+    ```
+    Installs and configures the core Alto CERO components based on your site configuration.
+    </Accordion>
+  </Step>
+  <Step title="Clean Docker Images">
+    Removes unused Docker images to free up disk space
+    <Accordion title="Command">
+    ```bash
+    sudo docker image prune -f
+    ```
+    Cleans up unused Docker images to optimize disk space.
+    </Accordion>
+  </Step>
+  <Step title="Install VOLTTRON Agents">
+    Deploys and configures VOLTTRON agents for your site
+    <Accordion title="Script: 05_install-volttron-agents.sh">
+    ```bash
+    bash $WORKING_DIR/scripts/installation_scripts/05_install-volttron-agents.sh $site_id
+    ```
+    Installs and configures the VOLTTRON agents specific to your site requirements.
+    </Accordion>
+  </Step>
+  <Step title="Azure IoT Edge Setup (Optional)">
+    If `--with-azure` is specified, provisions and installs Azure IoT Edge
+    <Accordion title="Scripts: Azure IoT Edge Installation">
+    ```bash
+    # Export environment variables
+    eval $(cat $WORKING_DIR/.env | sed 's/^/export /')
+    
+    # Provision IoT Edge with symmetric key
+    python $WORKING_DIR/scripts/installation_scripts/06_provision_iot_edge_symmetric_key.py $site_id
+    
+    # Re-export environment variables with new values
+    eval $(cat $WORKING_DIR/.env | sed 's/^/export /')
+    
+    # Install Azure IoT Edge runtime
+    bash $WORKING_DIR/scripts/installation_scripts/07_install-azure-iot-edge.sh
+    
+    # Install hardware monitoring sensors
+    sudo apt install lm-sensors
+    ```
+    Provisions the device with Azure IoT Hub, installs the Azure IoT Edge runtime, and sets up hardware monitoring.
+    </Accordion>
+  </Step>
+</Steps>
+
+### Command Line Arguments
+
+| Argument | Description | Required |
+|----------|-------------|----------|
+| `--site_id` | The ID of the site to install | Yes |
+| `--with-azure` | Include Azure IoT Edge registration and installation | No |
+
+<Tip>
+  You can monitor the installation progress in real-time. The script displays a progress bar and logs all operations to `/tmp/alto_install_*.log`.
+</Tip>
+
+## Step 5: Start Core Services
+
+```bash
+docker-compose up -d
+```
+
+This will start the core services:
+- MongoDB
+- TimescaleDB
+- Alto-Dash
+
+## Step 6: Start CPMS Services
+
+```bash
+docker-compose -f docker-compose-cpms.yml up -d
+```
+
+<Note>
+  For a development environment, you can run individual services directly without Docker.
+</Note>
+
+## Step 7: Access the Interface
+
+Once all services are running, you can access:
+
+- Alto CERO Interface: [http://localhost:3000](http://localhost:3000)
+- Alto TimescaleDB: [http://localhost:5433](http://localhost:5433)
+- Supabase Kong (for real-time data streaming): [http://localhost:8000](http://localhost:8000)
+- Backend API: [http://localhost:8001/api](http://localhost:8001/api)
+- Alto Dash: [http://localhost:8801](http://localhost:8801)
+
+Default login credentials:
+- Username: `Altoadmin`
+- Password: `Altoadmin12345`
+
+## Step 8: Configure Your First Site
+
+1. Log in to the Alto CERO Interface
+2. Navigate to Settings > Sites
+3. Click "Add New Site"
+4. Follow the setup wizard to configure your site
+
+## Troubleshooting
+
+If you encounter issues during installation:
+
+- Check container logs: `docker-compose logs -f [service_name]`
+- Verify all ports are available and not blocked by firewall
+- Ensure all submodules were correctly initialized and pulled
+- Check the `/scripts/logs` directory for installation logs
+
+## Next Steps
+
+- [Learn key concepts](/getting-started/key-concepts)
+- [Set up a demo environment](/getting-started/demo-environment)
+- [Configure for production](/installation/environment-setup)
+- [Customize site configuration](/configuration/site-configuration/site-config-basics) 
