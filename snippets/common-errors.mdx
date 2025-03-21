@@ -1,0 +1,66 @@
+## Common Error Responses
+
+The API uses standard HTTP status codes to indicate the success or failure of requests. In addition, the response body provides more detailed information about the error.
+
+<CodeGroup>
+```json 400 Bad Request
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid data provided",
+    "details": {
+      "field_name": ["Error message for this field"]
+    }
+  }
+}
+```
+
+```json 401 Unauthorized
+{
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication credentials were not provided or are invalid."
+  }
+}
+```
+
+```json 403 Forbidden
+{
+  "error": {
+    "code": "PERMISSION_DENIED",
+    "message": "You do not have permission to perform this action."
+  }
+}
+```
+
+```json 404 Not Found
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "The requested resource was not found."
+  }
+}
+```
+
+```json 429 Too Many Requests
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded. Please try again later.",
+    "details": {
+      "retry_after": 60
+    }
+  }
+}
+```
+
+```json 500 Server Error
+{
+  "error": {
+    "code": "SERVER_ERROR",
+    "message": "An unexpected error occurred.",
+    "reference_id": "error-uuid-for-logs"
+  }
+}
+```
+</CodeGroup> 

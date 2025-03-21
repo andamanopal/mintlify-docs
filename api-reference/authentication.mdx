@@ -1,0 +1,264 @@
+---
+title: 'Authentication'
+description: 'How to authenticate with the Alto CERO API'
+---
+
+# Authentication
+
+The Alto CERO API uses JWT (JSON Web Token) based authentication. This guide explains how to authenticate with the API and how to manage authentication tokens.
+
+## Authentication Flow
+
+<Steps>
+  <Step title="Obtain Access Token">
+    Call the `/api/auth/login/` endpoint with valid credentials to receive an access token and a refresh token.
+  </Step>
+  <Step title="Include Token in Requests">
+    Include the access token in the Authorization header of all API requests.
+  </Step>
+  <Step title="Refresh Token When Expired">
+    When the access token expires, use the refresh token to obtain a new access token without re-authenticating.
+  </Step>
+  <Step title="Logout">
+    When finished, call the logout endpoint to invalidate the tokens.
+  </Step>
+</Steps>
+
+## JWT Tokens
+
+The API uses two types of tokens:
+
+- **Access Token**: Short-lived token (expires in 24 hours) used to authenticate API requests
+- **Refresh Token**: Long-lived token (expires in 7 days) used to obtain new access tokens
+
+<Warning>
+  Protect your refresh tokens carefully. If compromised, they would allow an attacker to generate new access tokens.
+</Warning>
+
+## Login
+
+<CodeGroup>
+```bash cURL
+curl -X POST \
+  https://api.altotech.ai/api/auth/login/ \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "your_username",
+    "password": "your_password"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.altotech.ai/api/auth/login/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    username: 'your_username',
+    password: 'your_password'
+  })
+});
+
+const { token, refresh, user } = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.altotech.ai/api/auth/login/',
+    json={
+        'username': 'your_username',
+        'password': 'your_password'
+    }
+)
+
+data = response.json()
+token = data['token']
+refresh = data['refresh']
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "your_username",
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "roles": ["admin"],
+    "permissions": ["*"]
+  }
+}
+```
+
+## Using Access Tokens
+
+Include the access token in the `Authorization` header of all API requests:
+
+<CodeGroup>
+```bash cURL
+curl -X GET \
+  https://api.altotech.ai/api/core/sites/ \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.altotech.ai/api/core/sites/', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    'https://api.altotech.ai/api/core/sites/',
+    headers={
+        'Authorization': f'Bearer {token}'
+    }
+)
+
+data = response.json()
+```
+</CodeGroup>
+
+## Refreshing Tokens
+
+When your access token expires, use the refresh token to obtain a new one:
+
+<CodeGroup>
+```bash cURL
+curl -X POST \
+  https://api.altotech.ai/api/auth/refresh/ \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.altotech.ai/api/auth/refresh/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    refresh: refreshToken
+  })
+});
+
+const { token } = await response.json();
+// Store the new access token
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.altotech.ai/api/auth/refresh/',
+    json={
+        'refresh': refresh_token
+    }
+)
+
+new_token = response.json()['token']
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+## Logout
+
+To invalidate your tokens:
+
+<CodeGroup>
+```bash cURL
+curl -X POST \
+  https://api.altotech.ai/api/auth/logout/ \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
+  -d '{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.altotech.ai/api/auth/logout/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    refresh: refreshToken
+  })
+});
+
+// Clear stored tokens
+localStorage.removeItem('auth_token');
+localStorage.removeItem('refresh_token');
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.altotech.ai/api/auth/logout/',
+    headers={
+        'Authorization': f'Bearer {token}'
+    },
+    json={
+        'refresh': refresh_token
+    }
+)
+```
+</CodeGroup>
+
+## Token Security Best Practices
+
+1. **Store Tokens Securely**:
+   - For web apps, use HttpOnly cookies or secure browser storage
+   - For mobile apps, use secure storage options (Keychain for iOS, KeyStore for Android)
+
+2. **Token Transmission**:
+   - Always use HTTPS to prevent token interception
+   - Never include tokens in URLs
+
+3. **Token Validation**:
+   - Validate tokens on each request
+   - Check token expiration times
+
+4. **Error Handling**:
+   - If a token is rejected, automatically try to refresh it
+   - If refresh fails, redirect the user to login
+
+## Role-Based Access Control
+
+The Alto CERO API implements role-based access control. Each user is assigned one or more roles that determine their access permissions.
+
+| Role | Description | Access Level |
+|------|-------------|--------------|
+| admin | System administrator | Full access to all resources |
+| manager | Site manager | Create/edit resources, limited admin actions |
+| operator | System operator | Monitor and control equipment |
+| technician | Maintenance technician | View equipment status, record maintenance |
+| viewer | Read-only access | View data only, no modification permissions |
+
+You can check your user's roles in the response from the login endpoint. 

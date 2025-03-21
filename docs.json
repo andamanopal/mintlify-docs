@@ -8,6 +8,13 @@
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
+  "openapi": "./openapi.yaml",
+  "api": {
+    "baseUrl": "https://api.altotech.ai/api",
+    "playground": {
+      "mode": "simple"
+    }
+  },
   "ignorePatterns": ["alto-cero-infra/**", "node_modules/**", ".git/**"],
   "navigation": {
     "tabs": [
@@ -50,10 +57,72 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "Endpoints",
+            "group": "Introduction",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/webhook"
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Core System",
+            "pages": [
+              "api-reference/core/overview",
+              "api-reference/core/sites",
+              "api-reference/core/user-sites",
+              "api-reference/core/zones",
+              "api-reference/core/devices",
+              "api-reference/core/systems"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "api-reference/auth/overview",
+              "api-reference/auth/login",
+              "api-reference/auth/users",
+              "api-reference/auth/password"
+            ]
+          },
+          {
+            "group": "Equipment Management",
+            "pages": [
+              "api-reference/water-side/overview",
+              "api-reference/water-side/chillers",
+              "api-reference/water-side/cooling-towers",
+              "api-reference/water-side/pumps",
+              "api-reference/air-side/overview",
+              "api-reference/air-side/ahu",
+              "api-reference/air-side/vav",
+              "api-reference/equipment-maintenance/overview",
+              "api-reference/equipment-maintenance/tasks",
+              "api-reference/equipment-maintenance/schedule"
+            ]
+          },
+          {
+            "group": "Control & Automation",
+            "pages": [
+              "api-reference/controls/overview",
+              "api-reference/controls/command",
+              "api-reference/automation/overview",
+              "api-reference/automation/strategies",
+              "api-reference/automation/schedules",
+              "api-reference/autopilot/overview",
+              "api-reference/autopilot/status",
+              "api-reference/autopilot/recommendations"
+            ]
+          },
+          {
+            "group": "Support Systems",
+            "pages": [
+              "api-reference/environment/overview",
+              "api-reference/environment/conditions",
+              "api-reference/notifications/overview",
+              "api-reference/notifications/alerts",
+              "api-reference/database/overview",
+              "api-reference/database/query",
+              "api-reference/database/timeseries",
+              "api-reference/chiller-plant-map-editor/overview",
+              "api-reference/chiller-plant-map-editor/maps"
             ]
           }
         ]

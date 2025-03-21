@@ -1,0 +1,622 @@
+---
+title: 'Devices API'
+description: 'Manage and control IoT devices within a site'
+openapi: GET /core/devices
+---
+
+# Devices API
+
+The Devices API provides endpoints for managing and controlling IoT devices within a site. Devices represent physical hardware or software entities that collect data, perform actions, or both.
+
+<Note>
+  Device endpoints are filtered based on the user's primary site. All operations are performed in the context of the user's current site.
+</Note>
+
+## List All Devices
+
+Retrieve a list of all devices within the user's primary site.
+
+<Snippet file="api-examples-note.mdx" />
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField query="page" type="integer" default="1">
+      Page number for paginated results
+    </ParamField>
+    
+    <ParamField query="page_size" type="integer" default="20">
+      Number of items per page
+    </ParamField>
+    
+    <ParamField query="model" type="string">
+      Filter devices by model (e.g., "thermostat", "ahu")
+    </ParamField>
+    
+    <ParamField query="zone" type="string">
+      Filter devices by zone device_id
+    </ParamField>
+    
+    <ParamField query="system" type="string">
+      Filter devices by system device_id
+    </ParamField>
+    
+    <ParamField query="expand" type="string">
+      Comma-separated list of related fields to expand (e.g., "zone,system")
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X GET \
+        "https://api.altotech.ai/api/core/devices/?model=thermostat&zone=floor-001" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": [
+          {
+            "id": "device-001",
+            "name": "Thermostat 1",
+            "device_id": "therm-001",
+            "model": "thermostat",
+            "site": {
+              "id": "site-123",
+              "name": "Main Building"
+            },
+            "zone": {
+              "id": "zone-123",
+              "name": "Floor 1",
+              "device_id": "floor-001"
+            },
+            "system": {
+              "id": "system-123",
+              "name": "HVAC System",
+              "device_id": "hvac-001"
+            },
+            "datapoints": [
+              {
+                "id": "datapoint-001",
+                "name": "Temperature",
+                "key": "temperature",
+                "unit": "°C"
+              },
+              {
+                "id": "datapoint-002",
+                "name": "Setpoint",
+                "key": "setpoint",
+                "unit": "°C"
+              }
+            ],
+            "status": "online",
+            "last_seen": "2023-06-15T12:30:45Z",
+            "metadata": {
+              "manufacturer": "BuildingIQ",
+              "model_number": "TH-100",
+              "installation_date": "2023-01-15"
+            }
+          },
+          {
+            "id": "device-002",
+            "name": "Thermostat 2",
+            "device_id": "therm-002",
+            "model": "thermostat",
+            "site": {
+              "id": "site-123",
+              "name": "Main Building"
+            },
+            "zone": {
+              "id": "zone-123",
+              "name": "Floor 1",
+              "device_id": "floor-001"
+            },
+            "system": null,
+            "datapoints": [
+              {
+                "id": "datapoint-003",
+                "name": "Temperature",
+                "key": "temperature",
+                "unit": "°C"
+              },
+              {
+                "id": "datapoint-004",
+                "name": "Setpoint",
+                "key": "setpoint",
+                "unit": "°C"
+              }
+            ],
+            "status": "offline",
+            "last_seen": "2023-06-14T09:15:22Z",
+            "metadata": {
+              "manufacturer": "BuildingIQ",
+              "model_number": "TH-100",
+              "installation_date": "2023-01-20"
+            }
+          }
+        ],
+        "message": "Devices retrieved successfully",
+        "count": 2,
+        "total": 27,
+        "page": 1,
+        "page_size": 20
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function listDevices(token, params = {}) {
+        const queryParams = new URLSearchParams();
+        
+        // Add all parameters to query string
+        for (const [key, value] of Object.entries(params)) {
+          if (value !== undefined && value !== null) {
+            queryParams.append(key, value);
+          }
+        }
+        
+        const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+        
+        const response = await fetch(`https://api.altotech.ai/api/core/devices/${queryString}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch devices: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def list_devices(token, **params):
+          # Filter out None values
+          filtered_params = {k: v for k, v in params.items() if v is not None}
+          
+          response = requests.get(
+              'https://api.altotech.ai/api/core/devices/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              },
+              params=filtered_params
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Get a Specific Device
+
+<ParamField path="id" type="string" required>
+  The unique device_id of the device to retrieve
+</ParamField>
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField query="expand" type="string">
+      Comma-separated list of related fields to expand (e.g., "zone,system,datapoints")
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X GET \
+        "https://api.altotech.ai/api/core/devices/therm-001/?expand=zone,system" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": {
+          "id": "device-001",
+          "name": "Thermostat 1",
+          "device_id": "therm-001",
+          "model": "thermostat",
+          "site": {
+            "id": "site-123",
+            "name": "Main Building"
+          },
+          "zone": {
+            "id": "zone-123",
+            "name": "Floor 1",
+            "device_id": "floor-001",
+            "type": "floor"
+          },
+          "system": {
+            "id": "system-123",
+            "name": "HVAC System",
+            "device_id": "hvac-001"
+          },
+          "datapoints": [
+            {
+              "id": "datapoint-001",
+              "name": "Temperature",
+              "key": "temperature",
+              "unit": "°C",
+              "value": 22.5,
+              "timestamp": "2023-06-15T12:30:45Z",
+              "read_only": true,
+              "type": "number"
+            },
+            {
+              "id": "datapoint-002",
+              "name": "Setpoint",
+              "key": "setpoint",
+              "unit": "°C",
+              "value": 21.0,
+              "timestamp": "2023-06-15T12:00:10Z",
+              "read_only": false,
+              "type": "number"
+            },
+            {
+              "id": "datapoint-003",
+              "name": "Mode",
+              "key": "mode",
+              "unit": null,
+              "value": "cooling",
+              "timestamp": "2023-06-15T12:00:10Z",
+              "read_only": false,
+              "type": "enum",
+              "enum_values": ["off", "heating", "cooling", "auto"]
+            }
+          ],
+          "status": "online",
+          "last_seen": "2023-06-15T12:30:45Z",
+          "metadata": {
+            "manufacturer": "BuildingIQ",
+            "model_number": "TH-100",
+            "installation_date": "2023-01-15",
+            "firmware_version": "2.1.3",
+            "ip_address": "10.0.1.45"
+          }
+        },
+        "message": "Device retrieved successfully"
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function getDevice(token, deviceId, expand = '') {
+        const params = new URLSearchParams();
+        
+        if (expand) {
+          params.append('expand', expand);
+        }
+        
+        const queryString = params.toString() ? `?${params.toString()}` : '';
+        
+        const response = await fetch(`https://api.altotech.ai/api/core/devices/${deviceId}/${queryString}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch device: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def get_device(token, device_id, expand=None):
+          params = {}
+          
+          if expand:
+              params['expand'] = expand
+          
+          response = requests.get(
+              f'https://api.altotech.ai/api/core/devices/{device_id}/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              },
+              params=params
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Get Device Datapoints
+
+<ParamField path="id" type="string" required>
+  The unique device_id of the device
+</ParamField>
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField query="include_history" type="boolean" default="false">
+      Include historical values for each datapoint
+    </ParamField>
+    
+    <ParamField query="history_limit" type="integer" default="10">
+      Maximum number of historical values to include (if include_history=true)
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X GET \
+        "https://api.altotech.ai/api/core/devices/therm-001/datapoints/?include_history=true" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": {
+          "temperature": {
+            "id": "datapoint-001",
+            "name": "Temperature",
+            "key": "temperature",
+            "unit": "°C",
+            "value": 22.5,
+            "timestamp": "2023-06-15T12:30:45Z",
+            "read_only": true,
+            "type": "number",
+            "history": [
+              {"value": 22.5, "timestamp": "2023-06-15T12:30:45Z"},
+              {"value": 22.3, "timestamp": "2023-06-15T12:25:45Z"},
+              {"value": 22.1, "timestamp": "2023-06-15T12:20:45Z"}
+            ]
+          },
+          "setpoint": {
+            "id": "datapoint-002",
+            "name": "Setpoint",
+            "key": "setpoint",
+            "unit": "°C",
+            "value": 21.0,
+            "timestamp": "2023-06-15T12:00:10Z",
+            "read_only": false,
+            "type": "number",
+            "history": [
+              {"value": 21.0, "timestamp": "2023-06-15T12:00:10Z"},
+              {"value": 22.0, "timestamp": "2023-06-15T10:15:22Z"},
+              {"value": 21.5, "timestamp": "2023-06-15T08:30:15Z"}
+            ]
+          },
+          "mode": {
+            "id": "datapoint-003",
+            "name": "Mode",
+            "key": "mode",
+            "unit": null,
+            "value": "cooling",
+            "timestamp": "2023-06-15T12:00:10Z",
+            "read_only": false,
+            "type": "enum",
+            "enum_values": ["off", "heating", "cooling", "auto"],
+            "history": [
+              {"value": "cooling", "timestamp": "2023-06-15T12:00:10Z"},
+              {"value": "auto", "timestamp": "2023-06-14T18:45:30Z"},
+              {"value": "heating", "timestamp": "2023-06-14T08:15:22Z"}
+            ]
+          }
+        },
+        "message": "Device datapoints retrieved successfully"
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function getDeviceDatapoints(token, deviceId, includeHistory = false, historyLimit = 10) {
+        const params = new URLSearchParams({
+          include_history: includeHistory,
+          history_limit: historyLimit
+        });
+        
+        const response = await fetch(`https://api.altotech.ai/api/core/devices/${deviceId}/datapoints/?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch device datapoints: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def get_device_datapoints(token, device_id, include_history=False, history_limit=10):
+          params = {
+              'include_history': str(include_history).lower(),
+              'history_limit': history_limit
+          }
+          
+          response = requests.get(
+              f'https://api.altotech.ai/api/core/devices/{device_id}/datapoints/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              },
+              params=params
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Update Device Datapoint
+
+<ParamField path="id" type="string" required>
+  The unique device_id of the device
+</ParamField>
+
+<ParamField path="datapoint_key" type="string" required>
+  The key of the datapoint to update
+</ParamField>
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField body="value" type="any" required>
+      The new value for the datapoint. Type must match the datapoint type.
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X PATCH \
+        "https://api.altotech.ai/api/core/devices/therm-001/datapoints/setpoint/" \
+        -H "Authorization: Bearer {token}" \
+        -H "Content-Type: application/json" \
+        -d '{"value": 23.0}'
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": {
+          "id": "datapoint-002",
+          "name": "Setpoint",
+          "key": "setpoint",
+          "unit": "°C",
+          "value": 23.0,
+          "timestamp": "2023-06-15T13:45:30Z",
+          "read_only": false,
+          "type": "number"
+        },
+        "message": "Datapoint updated successfully"
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function updateDeviceDatapoint(token, deviceId, datapointKey, value) {
+        const response = await fetch(`https://api.altotech.ai/api/core/devices/${deviceId}/datapoints/${datapointKey}/`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ value })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to update datapoint: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def update_device_datapoint(token, device_id, datapoint_key, value):
+          response = requests.patch(
+              f'https://api.altotech.ai/api/core/devices/{device_id}/datapoints/{datapoint_key}/',
+              headers={
+                  'Authorization': f'Bearer {token}',
+                  'Content-Type': 'application/json'
+              },
+              json={'value': value}
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Device Models
+
+The following are common device models available in the system:
+
+| Model | Description | Example Datapoints |
+|-------|-------------|-------------------|
+| thermostat | Temperature control device | temperature, setpoint, mode |
+| ahu | Air Handling Unit | supply_temp, return_temp, fan_speed |
+| vav | Variable Air Volume box | damper_position, flow_rate, zone_temp |
+| meter | Energy or utility meter | consumption, demand, power_factor |
+| sensor | Generic sensor device | value, battery_level, signal_strength |
+| actuator | Control device | position, state, command |
+| controller | Logic controller | status, program, inputs, outputs |
+
+## Datapoint Types
+
+Datapoints can have the following types:
+
+| Type | Description | Example |
+|------|-------------|---------|
+| number | Numeric value, often with a unit | Temperature: 22.5°C |
+| string | Text value | Status: "Normal" |
+| boolean | True/false value | Occupied: true |
+| enum | Value from a predefined list | Mode: "cooling" |
+| object | Complex structured data | Configuration object |
+| array | List of values | List of alarm codes |
+
+## Response Codes
+
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 400 | Bad Request - Invalid parameters |
+| 401 | Unauthorized - Invalid or missing token |
+| 403 | Forbidden - Insufficient permissions |
+| 404 | Not Found - Device or datapoint doesn't exist |
+| 500 | Server Error |
+
+## Errors
+
+<CodeGroup>
+```json 400 Bad Request - Invalid Value Type
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid value type for datapoint 'setpoint'. Expected number."
+  }
+}
+```
+
+```json 403 Forbidden - Read-only Datapoint
+{
+  "error": {
+    "code": "PERMISSION_DENIED",
+    "message": "Cannot update read-only datapoint 'temperature'."
+  }
+}
+```
+
+```json 404 Not Found - Datapoint
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Datapoint 'invalid_key' not found for device 'therm-001'."
+  }
+}
+```
+</CodeGroup> 

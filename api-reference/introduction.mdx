@@ -1,33 +1,133 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: 'API Reference'
+description: 'Complete reference documentation for the Alto CERO API'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+# Alto CERO API Reference
 
-## Welcome
+Welcome to the Alto CERO API documentation. This reference provides details about all available API endpoints, request/response formats, and includes interactive examples that let you test the API directly from the documentation.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Base URL
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+All API endpoints use the following base URL pattern:
+
+```
+https://api.altotech.ai/api/
+```
+
+For local development environments:
+
+```
+http://localhost:8000/api/
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+<Snippet file="authentication-note.mdx" />
+
+You can obtain a token by calling the [login endpoint](/api-reference/auth/login).
+
+<Note>
+  The interactive examples in this documentation will automatically handle authentication for you once you provide your credentials.
+</Note>
+
+## Interactive Documentation
+
+Each API endpoint in this documentation includes an interactive example that allows you to:
+
+1. View the endpoint URL and HTTP method
+2. Examine required and optional parameters
+3. See example requests and responses
+4. Test the endpoint directly from your browser
+
+<Frame>
+  <img src="/images/api-playground-example.png" alt="API Playground Example" />
+</Frame>
+
+## Response Format
+
+All API responses follow a consistent JSON format:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  // For successful operations
+  "data": {
+    // Response data object or array
+  },
+  "message": "Operation successful",
+  
+  // For paginated responses
+  "count": 10,        // Number of items in the current response
+  "total": 45,        // Total number of items available
+  "page": 1,          // Current page number
+  "page_size": 10,    // Number of items per page
+  
+  // For error responses
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Error description",
+    "details": {}     // Optional error details
   }
-]
+}
 ```
+
+<Snippet file="common-errors.mdx" />
+
+## Rate Limiting
+
+The API implements rate limiting to ensure service stability. Limits vary by endpoint:
+
+- Authentication endpoints: 10 requests per minute
+- Read operations: 60 requests per minute 
+- Write operations: 30 requests per minute
+
+Rate limit information is included in the response headers:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1616799429
+```
+
+## API Structure
+
+The Alto CERO API is organized into the following categories:
+
+<CardGroup cols={2}>
+  <Card title="Core" icon="circle-nodes" href="/api-reference/core/overview">
+    Site, device, zone, and system management
+  </Card>
+  <Card title="Authentication" icon="lock" href="/api-reference/auth/overview">
+    User management, login, and access control
+  </Card>
+  <Card title="Water Side" icon="water" href="/api-reference/water-side/overview">
+    Chiller, cooling tower, and pump management
+  </Card>
+  <Card title="Air Side" icon="wind" href="/api-reference/air-side/overview">
+    AHU, VAV, and damper management
+  </Card>
+  <Card title="Controls" icon="sliders" href="/api-reference/controls/overview">
+    Equipment control commands
+  </Card>
+  <Card title="Automation" icon="robot" href="/api-reference/automation/overview">
+    Scheduling and automation strategies
+  </Card>
+  <Card title="Autopilot" icon="rocket" href="/api-reference/autopilot/overview">
+    AI-driven optimization and recommendations
+  </Card>
+  <Card title="Environment" icon="temperature-half" href="/api-reference/environment/overview">
+    Environmental conditions and monitoring
+  </Card>
+  <Card title="Notifications" icon="bell" href="/api-reference/notifications/overview">
+    Alerts and notification management
+  </Card>
+  <Card title="Database" icon="database" href="/api-reference/database/overview">
+    Data querying and time-series access
+  </Card>
+  <Card title="Equipment Maintenance" icon="screwdriver-wrench" href="/api-reference/equipment-maintenance/overview">
+    Maintenance tasks and schedules
+  </Card>
+  <Card title="Chiller Plant Map Editor" icon="map" href="/api-reference/chiller-plant-map-editor/overview">
+    Visual plant diagram editor
+  </Card>
+</CardGroup>

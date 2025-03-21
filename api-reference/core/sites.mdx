@@ -1,0 +1,713 @@
+---
+title: 'Sites API'
+description: 'Create, retrieve, update, and delete site configurations'
+openapi: GET /core/sites
+---
+
+# Sites API
+
+The Sites API provides endpoints for managing sites within the Alto CERO system. Sites are the primary organizational unit, representing physical locations like buildings or facilities.
+
+<Note>
+  Most Site endpoints are restricted to administrators or higher-level roles. Regular users can only view sites they have access to.
+</Note>
+
+## List All Sites
+
+Retrieves a list of all sites that the authenticated user has access to.
+
+<Snippet file="api-examples-note.mdx" />
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField query="page" type="integer" default="1">
+      Page number for paginated results
+    </ParamField>
+    
+    <ParamField query="page_size" type="integer" default="20">
+      Number of items per page
+    </ParamField>
+    
+    <ParamField query="name" type="string">
+      Filter sites by name (case-insensitive partial match)
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X GET \
+        "https://api.altotech.ai/api/core/sites/?page=1&page_size=10" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": [
+          {
+            "id": "site-123",
+            "name": "Headquarters Building",
+            "device_id": "hq-001",
+            "address": "123 Main Street, San Francisco, CA 94105",
+            "timezone": "America/Los_Angeles",
+            "created_at": "2023-01-15T08:30:00Z",
+            "updated_at": "2023-05-20T14:45:30Z",
+            "metadata": {
+              "square_footage": 120000,
+              "floors": 10,
+              "year_built": 2010,
+              "primary_use": "office"
+            },
+            "is_active": true,
+            "is_primary": true
+          },
+          {
+            "id": "site-456",
+            "name": "Manufacturing Plant",
+            "device_id": "mfg-001",
+            "address": "456 Industrial Way, Detroit, MI 48201",
+            "timezone": "America/Detroit",
+            "created_at": "2023-02-10T10:15:00Z",
+            "updated_at": "2023-04-12T16:30:00Z",
+            "metadata": {
+              "square_footage": 250000,
+              "floors": 2,
+              "year_built": 1995,
+              "primary_use": "manufacturing"
+            },
+            "is_active": true,
+            "is_primary": false
+          }
+        ],
+        "message": "Sites retrieved successfully",
+        "count": 2,
+        "total": 5,
+        "page": 1,
+        "page_size": 10
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function listSites(token, params = {}) {
+        const queryParams = new URLSearchParams();
+        
+        // Add all parameters to query string
+        for (const [key, value] of Object.entries(params)) {
+          if (value !== undefined && value !== null) {
+            queryParams.append(key, value);
+          }
+        }
+        
+        const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+        
+        const response = await fetch(`https://api.altotech.ai/api/core/sites/${queryString}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch sites: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def list_sites(token, **params):
+          # Filter out None values
+          filtered_params = {k: v for k, v in params.items() if v is not None}
+          
+          response = requests.get(
+              'https://api.altotech.ai/api/core/sites/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              },
+              params=filtered_params
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Get a Specific Site
+
+<ParamField path="id" type="string" required>
+  The unique device_id of the site to retrieve
+</ParamField>
+
+<Tabs>
+  <Tab title="API Playground">
+    <RequestExample>
+      ```bash cURL
+      curl -X GET \
+        "https://api.altotech.ai/api/core/sites/hq-001/" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": {
+          "id": "site-123",
+          "name": "Headquarters Building",
+          "device_id": "hq-001",
+          "address": "123 Main Street, San Francisco, CA 94105",
+          "timezone": "America/Los_Angeles",
+          "created_at": "2023-01-15T08:30:00Z",
+          "updated_at": "2023-05-20T14:45:30Z",
+          "metadata": {
+            "square_footage": 120000,
+            "floors": 10,
+            "year_built": 2010,
+            "primary_use": "office",
+            "property_manager": "Jane Smith",
+            "contact_email": "jsmith@example.com",
+            "contact_phone": "+1-555-123-4567",
+            "operating_hours": "Mon-Fri: 7:00-19:00"
+          },
+          "is_active": true,
+          "is_primary": true,
+          "stats": {
+            "devices": 325,
+            "zones": 45,
+            "systems": 12,
+            "users": 120
+          },
+          "location": {
+            "latitude": 37.7749,
+            "longitude": -122.4194
+          }
+        },
+        "message": "Site retrieved successfully"
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function getSite(token, deviceId) {
+        const response = await fetch(`https://api.altotech.ai/api/core/sites/${deviceId}/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch site: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def get_site(token, device_id):
+          response = requests.get(
+              f'https://api.altotech.ai/api/core/sites/{device_id}/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              }
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Create a New Site
+
+<Note type="warning">
+  This endpoint is restricted to superuser accounts only.
+</Note>
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField body="name" type="string" required>
+      The name of the site
+    </ParamField>
+    
+    <ParamField body="device_id" type="string" required>
+      A unique identifier for the site
+    </ParamField>
+    
+    <ParamField body="address" type="string">
+      The physical address of the site
+    </ParamField>
+    
+    <ParamField body="timezone" type="string" required>
+      The timezone of the site (in IANA timezone format)
+    </ParamField>
+    
+    <ParamField body="metadata" type="object">
+      Additional custom data for the site
+    </ParamField>
+    
+    <ParamField body="is_active" type="boolean" default="true">
+      Whether the site is active
+    </ParamField>
+    
+    <ParamField body="location" type="object">
+      Geographic coordinates for the site
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X POST \
+        "https://api.altotech.ai/api/core/sites/" \
+        -H "Authorization: Bearer {token}" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "name": "Downtown Office",
+          "device_id": "downtown-001",
+          "address": "555 Market Street, San Francisco, CA 94105",
+          "timezone": "America/Los_Angeles",
+          "metadata": {
+            "square_footage": 85000,
+            "floors": 7,
+            "year_built": 2015,
+            "primary_use": "office"
+          },
+          "location": {
+            "latitude": 37.7890,
+            "longitude": -122.4000
+          }
+        }'
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": {
+          "id": "site-789",
+          "name": "Downtown Office",
+          "device_id": "downtown-001",
+          "address": "555 Market Street, San Francisco, CA 94105",
+          "timezone": "America/Los_Angeles",
+          "created_at": "2023-06-15T14:30:00Z",
+          "updated_at": "2023-06-15T14:30:00Z",
+          "metadata": {
+            "square_footage": 85000,
+            "floors": 7,
+            "year_built": 2015,
+            "primary_use": "office"
+          },
+          "is_active": true,
+          "is_primary": false,
+          "location": {
+            "latitude": 37.7890,
+            "longitude": -122.4000
+          }
+        },
+        "message": "Site created successfully"
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function createSite(token, siteData) {
+        const response = await fetch('https://api.altotech.ai/api/core/sites/', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(siteData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create site: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def create_site(token, site_data):
+          response = requests.post(
+              'https://api.altotech.ai/api/core/sites/',
+              headers={
+                  'Authorization': f'Bearer {token}',
+                  'Content-Type': 'application/json'
+              },
+              json=site_data
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Update a Site
+
+<ParamField path="id" type="string" required>
+  The unique device_id of the site to update
+</ParamField>
+
+<Note type="warning">
+  This endpoint is restricted to site administrators or superusers.
+</Note>
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField body="name" type="string">
+      The updated name of the site
+    </ParamField>
+    
+    <ParamField body="address" type="string">
+      The updated physical address of the site
+    </ParamField>
+    
+    <ParamField body="timezone" type="string">
+      The updated timezone of the site
+    </ParamField>
+    
+    <ParamField body="metadata" type="object">
+      Updated additional custom data for the site
+    </ParamField>
+    
+    <ParamField body="is_active" type="boolean">
+      Whether the site is active
+    </ParamField>
+    
+    <ParamField body="location" type="object">
+      Updated geographic coordinates for the site
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X PATCH \
+        "https://api.altotech.ai/api/core/sites/downtown-001/" \
+        -H "Authorization: Bearer {token}" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "name": "Downtown HQ Office",
+          "metadata": {
+            "square_footage": 85000,
+            "floors": 8,
+            "year_built": 2015,
+            "primary_use": "office",
+            "renovation_date": "2022-01-15"
+          }
+        }'
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": {
+          "id": "site-789",
+          "name": "Downtown HQ Office",
+          "device_id": "downtown-001",
+          "address": "555 Market Street, San Francisco, CA 94105",
+          "timezone": "America/Los_Angeles",
+          "created_at": "2023-06-15T14:30:00Z",
+          "updated_at": "2023-06-15T15:45:00Z",
+          "metadata": {
+            "square_footage": 85000,
+            "floors": 8,
+            "year_built": 2015,
+            "primary_use": "office",
+            "renovation_date": "2022-01-15"
+          },
+          "is_active": true,
+          "is_primary": false,
+          "location": {
+            "latitude": 37.7890,
+            "longitude": -122.4000
+          }
+        },
+        "message": "Site updated successfully"
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function updateSite(token, deviceId, updateData) {
+        const response = await fetch(`https://api.altotech.ai/api/core/sites/${deviceId}/`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to update site: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def update_site(token, device_id, update_data):
+          response = requests.patch(
+              f'https://api.altotech.ai/api/core/sites/{device_id}/',
+              headers={
+                  'Authorization': f'Bearer {token}',
+                  'Content-Type': 'application/json'
+              },
+              json=update_data
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Delete a Site
+
+<ParamField path="id" type="string" required>
+  The unique device_id of the site to delete
+</ParamField>
+
+<Note type="danger">
+  This endpoint is restricted to superuser accounts only. Deleting a site will permanently remove all associated data including zones, devices, systems, and user associations.
+</Note>
+
+<Tabs>
+  <Tab title="API Playground">
+    <RequestExample>
+      ```bash cURL
+      curl -X DELETE \
+        "https://api.altotech.ai/api/core/sites/downtown-001/" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "message": "Site deleted successfully"
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function deleteSite(token, deviceId) {
+        const response = await fetch(`https://api.altotech.ai/api/core/sites/${deviceId}/`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to delete site: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def delete_site(token, device_id):
+          response = requests.delete(
+              f'https://api.altotech.ai/api/core/sites/{device_id}/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              }
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Set Primary Site
+
+<ParamField path="id" type="string" required>
+  The unique device_id of the site to set as primary
+</ParamField>
+
+<Note>
+  Sets a site as the user's primary site. The primary site is used as the default context for all operations when no site is explicitly specified.
+</Note>
+
+<Tabs>
+  <Tab title="API Playground">
+    <RequestExample>
+      ```bash cURL
+      curl -X POST \
+        "https://api.altotech.ai/api/core/sites/downtown-001/set-primary/" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "message": "Primary site set successfully",
+        "data": {
+          "id": "site-789",
+          "name": "Downtown HQ Office",
+          "device_id": "downtown-001",
+          "is_primary": true
+        }
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function setPrimarySite(token, deviceId) {
+        const response = await fetch(`https://api.altotech.ai/api/core/sites/${deviceId}/set-primary/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to set primary site: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def set_primary_site(token, device_id):
+          response = requests.post(
+              f'https://api.altotech.ai/api/core/sites/{device_id}/set-primary/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              }
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Site Object Structure
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Unique identifier for the site |
+| name | string | Display name for the site |
+| device_id | string | Unique device ID for the site |
+| address | string | Physical address of the site |
+| timezone | string | IANA timezone identifier (e.g., "America/Los_Angeles") |
+| created_at | string | ISO timestamp of creation date |
+| updated_at | string | ISO timestamp of last update date |
+| metadata | object | Additional custom data for the site |
+| is_active | boolean | Whether the site is currently active |
+| is_primary | boolean | Whether this is the user's primary site |
+| location | object | Geographic coordinates for the site |
+| stats | object | Summary statistics about the site (only in detailed view) |
+
+## Response Codes
+
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 201 | Created - Successfully created a new site |
+| 204 | No Content - Successfully deleted a site |
+| 400 | Bad Request - Invalid parameters |
+| 401 | Unauthorized - Invalid or missing token |
+| 403 | Forbidden - Insufficient permissions |
+| 404 | Not Found - Site not found |
+| 500 | Server Error |
+
+## Errors
+
+<CodeGroup>
+```json 400 Bad Request - Validation Error
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid data provided",
+    "details": {
+      "device_id": ["This field is required"],
+      "timezone": ["Invalid timezone"]
+    }
+  }
+}
+```
+
+```json 401 Unauthorized
+{
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication credentials were not provided or are invalid."
+  }
+}
+```
+
+```json 403 Forbidden
+{
+  "error": {
+    "code": "PERMISSION_DENIED",
+    "message": "You do not have permission to perform this action."
+  }
+}
+```
+
+```json 404 Not Found
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Site with device_id 'invalid-id' not found."
+  }
+}
+```
+
+```json 409 Conflict
+{
+  "error": {
+    "code": "CONFLICT",
+    "message": "A site with this device_id already exists."
+  }
+}
+```
+</CodeGroup> 

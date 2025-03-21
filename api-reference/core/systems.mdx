@@ -1,0 +1,251 @@
+---
+title: 'Systems API'
+description: 'Manage higher-level systems within a site'
+openapi: GET /core/systems
+---
+
+# Systems API
+
+The Systems API provides endpoints for managing systems within a site. Systems represent higher-level functional groups of devices, such as HVAC systems, lighting systems, or security systems.
+
+<Note>
+  System endpoints are filtered based on the user's primary site. All operations are performed in the context of the user's current site.
+</Note>
+
+## List All Systems
+
+Retrieve a list of all systems within the user's primary site.
+
+<Snippet file="api-examples-note.mdx" />
+
+<Tabs>
+  <Tab title="API Playground">
+    <ParamField query="page" type="integer" default="1">
+      Page number for paginated results
+    </ParamField>
+    
+    <ParamField query="page_size" type="integer" default="20">
+      Number of items per page
+    </ParamField>
+    
+    <ParamField query="type" type="string">
+      Filter systems by type (e.g., "hvac", "lighting")
+    </ParamField>
+    
+    <ParamField query="expand" type="string">
+      Comma-separated list of related fields to expand (e.g., "devices")
+    </ParamField>
+    
+    <RequestExample>
+      ```bash cURL
+      curl -X GET \
+        "https://api.altotech.ai/api/core/systems/?type=hvac" \
+        -H "Authorization: Bearer {token}"
+      ```
+    </RequestExample>
+    
+    <ResponseExample>
+      ```json Response
+      {
+        "data": [
+          {
+            "id": "system-123",
+            "name": "Main HVAC System",
+            "device_id": "hvac-001",
+            "type": "hvac",
+            "site": {
+              "id": "site-123",
+              "name": "Main Building"
+            },
+            "devices": [
+              {
+                "id": "device-001",
+                "name": "AHU 1",
+                "device_id": "ahu-001",
+                "model": "ahu"
+              },
+              {
+                "id": "device-002",
+                "name": "VAV 1",
+                "device_id": "vav-001",
+                "model": "vav"
+              }
+            ],
+            "metadata": {
+              "manufacturer": "Carrier",
+              "installation_date": "2022-03-15",
+              "capacity": "50 tons"
+            }
+          },
+          {
+            "id": "system-456",
+            "name": "Secondary HVAC System",
+            "device_id": "hvac-002",
+            "type": "hvac",
+            "site": {
+              "id": "site-123",
+              "name": "Main Building"
+            },
+            "devices": [
+              {
+                "id": "device-003",
+                "name": "AHU 2",
+                "device_id": "ahu-002",
+                "model": "ahu"
+              }
+            ],
+            "metadata": {
+              "manufacturer": "Trane",
+              "installation_date": "2021-08-10",
+              "capacity": "30 tons"
+            }
+          }
+        ],
+        "message": "Systems retrieved successfully",
+        "count": 2,
+        "total": 5,
+        "page": 1,
+        "page_size": 20
+      }
+      ```
+    </ResponseExample>
+  </Tab>
+  
+  <Tab title="Implementation">
+    <CodeGroup>
+      ```javascript JavaScript
+      async function listSystems(token, params = {}) {
+        const queryParams = new URLSearchParams();
+        
+        // Add all parameters to query string
+        for (const [key, value] of Object.entries(params)) {
+          if (value !== undefined && value !== null) {
+            queryParams.append(key, value);
+          }
+        }
+        
+        const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+        
+        const response = await fetch(`https://api.altotech.ai/api/core/systems/${queryString}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch systems: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      ```
+      
+      ```python Python
+      import requests
+      
+      def list_systems(token, **params):
+          # Filter out None values
+          filtered_params = {k: v for k, v in params.items() if v is not None}
+          
+          response = requests.get(
+              'https://api.altotech.ai/api/core/systems/',
+              headers={
+                  'Authorization': f'Bearer {token}'
+              },
+              params=filtered_params
+          )
+          
+          response.raise_for_status()
+          return response.json()
+      ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Get a Specific System
+
+<openapi operation="GET /core/systems/{id}" endpoint="/core/systems/hvac-001" />
+
+## Get System Status
+
+<openapi operation="GET /core/systems/{id}/status" endpoint="/core/systems/hvac-001/status" />
+
+## System Types
+
+The following are common system types available in the API:
+
+| Type | Description | Example Devices |
+|------|-------------|-----------------|
+| hvac | Heating, Ventilation, and Air Conditioning | AHUs, VAVs, Chillers, Boilers |
+| lighting | Lighting control systems | Light fixtures, Dimmers, Motion sensors |
+| electrical | Electrical distribution systems | Panels, Meters, Transformers |
+| security | Security and access control | Cameras, Door controllers, Alarms |
+| fire | Fire detection and suppression | Smoke detectors, Sprinklers, Alarm panels |
+| plumbing | Water and plumbing systems | Pumps, Valves, Flow meters |
+| renewable | Renewable energy systems | Solar panels, Wind turbines, Batteries |
+| metering | Utility metering systems | Electric meters, Water meters, Gas meters |
+
+## System Status Information
+
+The status endpoint returns the following information:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| operational | boolean | Whether the system is currently operational |
+| active_alarms | integer | Number of active alarms in the system |
+| maintenance_due | boolean | Whether maintenance is currently due |
+| power_status | string | Current power status (e.g., "on", "off", "standby") |
+| operating_mode | string | Current operating mode (system-specific) |
+| energy_consumption | object | Current and daily energy consumption data |
+| performance | object | Performance metrics like efficiency and load percentage |
+| last_updated | string | ISO timestamp of when the status was last updated |
+
+## Response Codes
+
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 401 | Unauthorized - Invalid or missing token |
+| 403 | Forbidden - Insufficient permissions |
+| 404 | Not Found - System doesn't exist or no primary site found |
+| 500 | Server Error |
+
+## Errors
+
+<CodeGroup>
+```json 401 Unauthorized
+{
+  "error": {
+    "code": "AUTHENTICATION_ERROR",
+    "message": "Authentication credentials were not provided or are invalid."
+  }
+}
+```
+
+```json 403 Forbidden
+{
+  "error": {
+    "code": "PERMISSION_DENIED",
+    "message": "You do not have permission to access systems for this site."
+  }
+}
+```
+
+```json 404 Not Found - No Primary Site
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "No primary site found."
+  }
+}
+```
+
+```json 404 Not Found - System Not Found
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "System hvac-999 not found."
+  }
+}
+```
+</CodeGroup> 

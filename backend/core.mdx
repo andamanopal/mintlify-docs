@@ -1,0 +1,234 @@
+---
+title: 'Core System'
+description: 'Foundation services and models that power the Alto CERO backend'
+---
+
+# Core System
+
+The Core application provides foundational services and data models used by other applications in the Alto CERO system. It handles site configuration, system health, telemetry data, and other core functionality.
+
+## Key Features
+
+- Site management and configuration
+- System health monitoring
+- Telemetry collection and storage
+- Global configuration settings
+- Base model definitions
+
+## API Endpoints
+
+### Sites
+
+<ParamField path="/api/core/sites/" method="GET">
+  List all sites accessible to the authenticated user.
+</ParamField>
+
+**Parameters:**
+
+<ResponseField name="page" type="integer">
+  Page number for pagination
+</ResponseField>
+
+<ResponseField name="page_size" type="integer">
+  Number of results per page
+</ResponseField>
+
+**Response:**
+
+```json
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "site-123",
+      "name": "Main Building",
+      "location": "123 Main St",
+      "timezone": "Asia/Bangkok",
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z",
+      "config": {
+        // Site-specific configuration
+      }
+    }
+  ]
+}
+```
+
+<ParamField path="/api/core/sites/" method="POST">
+  Create a new site.
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "name": "New Site",
+  "location": "456 Second Ave",
+  "timezone": "Asia/Bangkok",
+  "config": {
+    // Site-specific configuration
+  }
+}
+```
+
+<ParamField path="/api/core/sites/{id}/" method="GET">
+  Retrieve details for a specific site.
+</ParamField>
+
+<ParamField path="/api/core/sites/{id}/" method="PUT">
+  Update a site's information.
+</ParamField>
+
+<ParamField path="/api/core/sites/{id}/" method="PATCH">
+  Partially update a site's information.
+</ParamField>
+
+<ParamField path="/api/core/sites/{id}/" method="DELETE">
+  Delete a site.
+</ParamField>
+
+### System Health
+
+<ParamField path="/api/core/health/" method="GET">
+  Get the current health status of all system components.
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "status": "healthy",
+  "components": {
+    "database": {
+      "status": "healthy",
+      "latency_ms": 5
+    },
+    "mqtt_broker": {
+      "status": "healthy",
+      "connections": 12
+    },
+    "volttron": {
+      "status": "healthy",
+      "agents_running": 8
+    }
+  },
+  "last_checked": "2023-03-15T08:30:00Z"
+}
+```
+
+### Telemetry
+
+<ParamField path="/api/core/telemetry/" method="GET">
+  Get real-time telemetry data for the system.
+</ParamField>
+
+**Parameters:**
+
+<ResponseField name="site_id" type="string">
+  Filter telemetry by site ID
+</ResponseField>
+
+<ResponseField name="metrics" type="array">
+  List of specific metrics to retrieve
+</ResponseField>
+
+**Response:**
+
+```json
+{
+  "timestamp": "2023-03-15T08:32:15Z",
+  "site_id": "site-123",
+  "metrics": {
+    "cpu_usage": 24.5,
+    "memory_usage": 65.2,
+    "disk_usage": 45.8,
+    "network_in_mbps": 5.2,
+    "network_out_mbps": 2.1
+  }
+}
+```
+
+### Configuration
+
+<ParamField path="/api/core/config/" method="GET">
+  Get system configuration.
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "version": "2.0.1",
+  "environment": "production",
+  "features": {
+    "autopilot": true,
+    "air_side": true,
+    "water_side": true,
+    "maintenance": true
+  },
+  "defaults": {
+    "temperature_unit": "celsius",
+    "pressure_unit": "kPa",
+    "flow_rate_unit": "m3/h"
+  }
+}
+```
+
+## Models
+
+### Site
+
+The `Site` model is the primary entity representing a physical location with HVAC equipment.
+
+**Fields:**
+
+| Field      | Type     | Description                           |
+|------------|----------|---------------------------------------|
+| id         | string   | Unique identifier                     |
+| name       | string   | Display name                          |
+| location   | string   | Physical address                      |
+| timezone   | string   | IANA timezone identifier              |
+| config     | object   | Site-specific configuration           |
+| created_at | datetime | Creation timestamp                    |
+| updated_at | datetime | Last update timestamp                 |
+
+## Code Example
+
+```javascript
+// Example: Fetch all sites and their telemetry
+async function getSitesWithTelemetry(token) {
+  // Get all sites
+  const sitesResponse = await fetch('/api/core/sites/', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  const sitesData = await sitesResponse.json();
+  const sites = sitesData.results;
+  
+  // Get telemetry for each site
+  const sitesWithTelemetry = await Promise.all(
+    sites.map(async (site) => {
+      const telemetryResponse = await fetch(`/api/core/telemetry/?site_id=${site.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const telemetry = await telemetryResponse.json();
+      
+      return {
+        ...site,
+        telemetry
+      };
+    })
+  );
+  
+  return sitesWithTelemetry;
+}
+``` 

@@ -1,0 +1,271 @@
+---
+title: 'Core API'
+description: 'Foundation services and models that power the Alto CERO backend'
+---
+
+# Core API
+
+The Core API provides foundational services and data models used by other applications in the Alto CERO system. It handles site configuration, device management, zones, systems, and other core functionality.
+
+## Key Features
+
+- Site management and configuration
+- User-site relationship management
+- Zone and device organization
+- System hierarchy management
+- Device control capabilities
+- Datapoint enumeration management
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Sites" icon="building" href="/api-reference/core/sites">
+    Create, retrieve, update, and delete site configurations.
+  </Card>
+  <Card title="User Sites" icon="users-gear" href="/api-reference/core/user-sites">
+    Manage user associations with sites and their access permissions.
+  </Card>
+  <Card title="Zones" icon="map-location" href="/api-reference/core/zones">
+    Define and organize zones within a site for hierarchical management.
+  </Card>
+  <Card title="Devices" icon="microchip" href="/api-reference/core/devices">
+    Manage and control IoT devices within a site.
+  </Card>
+  <Card title="Systems" icon="network-wired" href="/api-reference/core/systems">
+    Organize higher-level systems within a site (e.g., HVAC, lighting).
+  </Card>
+</CardGroup>
+
+## Models
+
+### Site
+
+The `Site` model is the primary entity representing a physical location with equipment.
+
+<ResponseField name="id" type="string">
+  Unique identifier for the site.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Display name for the site.
+</ResponseField>
+
+<ResponseField name="location" type="string">
+  Physical address of the site.
+</ResponseField>
+
+<ResponseField name="timezone" type="string">
+  IANA timezone identifier for the site (e.g., "Asia/Bangkok").
+</ResponseField>
+
+<ResponseField name="config" type="object">
+  Site-specific configuration object.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp when the site was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string">
+  ISO 8601 timestamp when the site was last updated.
+</ResponseField>
+
+### UserSite
+
+The `UserSite` model represents the relationship between users and sites, defining their access role.
+
+<ResponseField name="id" type="string">
+  Unique identifier for the user-site relationship.
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  Reference to the user account.
+</ResponseField>
+
+<ResponseField name="site" type="object">
+  Reference to the site.
+</ResponseField>
+
+<ResponseField name="role" type="string">
+  User's role at this site (admin, operator, viewer, etc.).
+</ResponseField>
+
+<ResponseField name="is_primary" type="boolean">
+  Whether this is the user's primary site.
+</ResponseField>
+
+### Zone
+
+<ResponseField name="id" type="string">
+  Unique identifier for the zone.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Display name for the zone.
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Type classification of the zone (e.g., "ahu", "room", "floor").
+</ResponseField>
+
+<ResponseField name="site" type="object">
+  Reference to the site this zone belongs to.
+</ResponseField>
+
+<ResponseField name="device_id" type="string">
+  Identifier used by IoT systems to reference this zone.
+</ResponseField>
+
+### Device
+
+<ResponseField name="id" type="string">
+  Unique identifier for the device.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Display name for the device.
+</ResponseField>
+
+<ResponseField name="device_id" type="string">
+  Identifier used by IoT systems to reference this device.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Model/type of the device.
+</ResponseField>
+
+<ResponseField name="site" type="object">
+  Reference to the site this device belongs to.
+</ResponseField>
+
+<ResponseField name="zones" type="array">
+  Zones associated with this device.
+</ResponseField>
+
+### System
+
+<ResponseField name="id" type="string">
+  Unique identifier for the system.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Display name for the system.
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Type classification of the system (e.g., "hvac", "lighting").
+</ResponseField>
+
+<ResponseField name="site" type="object">
+  Reference to the site this system belongs to.
+</ResponseField>
+
+<ResponseField name="device_id" type="string">
+  Identifier used by IoT systems to reference this system.
+</ResponseField>
+
+### DatapointEnum
+
+<ResponseField name="id" type="string">
+  Unique identifier for the datapoint enum.
+</ResponseField>
+
+<ResponseField name="site" type="object">
+  Reference to the site this enum belongs to.
+</ResponseField>
+
+<ResponseField name="datapoint" type="string">
+  Name of the datapoint this enum maps to.
+</ResponseField>
+
+<ResponseField name="value" type="integer">
+  Numeric value of the enum.
+</ResponseField>
+
+<ResponseField name="definition" type="string">
+  Human-readable description of what this value means.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Model/type of device this enum applies to.
+</ResponseField>
+
+## User Roles and Permissions
+
+The Core API implements role-based access control. Below is a summary of the roles and their access levels:
+
+| Role | Description | Access Level |
+|------|-------------|--------------|
+| Superuser | System administrator | Full access to all endpoints |
+| Site Admin | Site administrator | Manage specific site details and users |
+| Operator | Site operator | Control devices, view all site data |
+| Technician | Maintenance technician | View device/zone data |
+| Viewer | Read-only access | View site data only |
+
+## Common Parameters
+
+<ResponseField name="site_id" type="string">
+  Site identifier used to filter results for a specific site.
+</ResponseField>
+
+<ResponseField name="include_details" type="boolean">
+  When true, includes additional details in the response.
+</ResponseField>
+
+<ResponseField name="page" type="integer">
+  Page number for paginated results (starts at 1).
+</ResponseField>
+
+<ResponseField name="page_size" type="integer">
+  Number of results per page (default: 20, max: 100).
+</ResponseField>
+
+## Example Usage
+
+<CodeGroup>
+```javascript JavaScript
+// Get all site details
+async function getAllSites(token) {
+  const response = await fetch('https://api.altotech.ai/api/core/sites/', {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  return await response.json();
+}
+
+// Check system health
+async function getSystemHealth(token) {
+  const response = await fetch('https://api.altotech.ai/api/core/health/', {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  return await response.json();
+}
+```
+
+```python Python
+import requests
+
+def get_all_sites(token):
+    response = requests.get(
+        'https://api.altotech.ai/api/core/sites/',
+        headers={
+            'Authorization': f'Bearer {token}'
+        }
+    )
+    return response.json()
+
+def get_system_health(token):
+    response = requests.get(
+        'https://api.altotech.ai/api/core/health/',
+        headers={
+            'Authorization': f'Bearer {token}'
+        }
+    )
+    return response.json()
+```
+</CodeGroup> 

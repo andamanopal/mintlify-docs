@@ -1,0 +1,111 @@
+---
+title: 'Backend Architecture'
+description: 'Overview of the Alto CERO backend services and API structure'
+---
+
+# Alto CERO Backend System
+
+The Alto CERO backend is built on a modular architecture where functionality is divided into specialized applications. This design enables independent development, testing, and deployment of components while maintaining a cohesive system.
+
+## System Architecture
+
+The backend follows a microservices-inspired design pattern with these key characteristics:
+
+- **Modular Design**: Each app handles a specific domain of functionality
+- **RESTful API**: Standardized API interfaces for all services
+- **JWT Authentication**: Secure token-based authentication
+- **Real-time Capabilities**: WebSocket support for live data streams
+- **Containerized Deployment**: Docker-based deployment for scalability
+
+<Frame>
+  <img src="/images/backend-architecture.png" alt="Alto CERO Backend Architecture" />
+</Frame>
+
+## Core Technologies
+
+The backend is built with the following technologies:
+
+| Technology | Purpose |
+|------------|---------|
+| Django | Primary web framework |
+| Django REST Framework | API development |
+| TimescaleDB | Time-series data storage |
+| MongoDB | Document storage |
+| Redis | Caching and message brokering |
+| Docker | Containerization |
+| VOLTTRON | Distributed control system |
+
+## Application Structure
+
+The backend is organized into the following applications, each with its own API endpoints:
+
+<CardGroup cols={2}>
+  <Card title="Core" icon="circle-nodes" href="/backend/core">
+    Foundation services and models used by other apps
+  </Card>
+  <Card title="Authentication" icon="lock" href="/backend/authentication">
+    User management and access control
+  </Card>
+  <Card title="Water Side" icon="water" href="/backend/water-side">
+    Water-side HVAC equipment management
+  </Card>
+  <Card title="Air Side" icon="wind" href="/backend/air-side">
+    Air-side HVAC equipment management
+  </Card>
+  <Card title="Controls" icon="sliders" href="/backend/controls">
+    Direct equipment control interfaces
+  </Card>
+  <Card title="Automation" icon="robot" href="/backend/automation">
+    Automated control strategies
+  </Card>
+  <Card title="Autopilot" icon="rocket" href="/backend/autopilot">
+    AI-driven autonomous operation
+  </Card>
+  <Card title="Database" icon="database" href="/backend/database">
+    Data access and storage services
+  </Card>
+  <Card title="Environment" icon="temperature-half" href="/backend/environment">
+    Environmental monitoring and settings
+  </Card>
+  <Card title="Equipment Maintenance" icon="screwdriver-wrench" href="/backend/equipment-maintenance">
+    Maintenance scheduling and tracking
+  </Card>
+  <Card title="Notifications" icon="bell" href="/backend/notifications">
+    Alert and notification management
+  </Card>
+  <Card title="Chiller Plant Map Editor" icon="map" href="/backend/chiller-plant-map-editor">
+    Visual editor for chiller plant diagrams
+  </Card>
+</CardGroup>
+
+## Common API Patterns
+
+All API endpoints in the Alto CERO backend follow these conventions:
+
+1. **Base URL**: All endpoints are prefixed with `/api/`
+2. **Authentication**: JWT tokens are required in the `Authorization` header
+3. **Response Format**: JSON responses with standardized structure
+4. **Error Handling**: Consistent error codes and messages
+5. **Versioning**: API versioning through URL path when needed
+
+Example API request:
+
+```javascript
+const response = await fetch('/api/core/sites/', {
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+const data = await response.json();
+```
+
+## Next Steps
+
+Explore the specific applications and their APIs:
+
+- [Core System](/backend/core)
+- [Authentication](/backend/authentication)
+- [Water Side Equipment](/backend/water-side)
+- [Full API Reference](/api-reference/endpoint/get) 

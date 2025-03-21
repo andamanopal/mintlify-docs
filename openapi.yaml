@@ -1,0 +1,620 @@
+openapi: 3.0.3
+info:
+  title: Alto CERO API
+  description: API for the Alto CERO building management system
+  version: 2.0.0
+servers:
+  - url: https://api.altotech.ai/api
+    description: Production server
+  - url: http://localhost:8000/api
+    description: Development server
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - BearerAuth: []
+paths:
+  /core/sites:
+    get:
+      summary: List all sites
+      description: Retrieve a list of all sites the user has access to
+      operationId: listSites
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved sites
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        location:
+                          type: string
+                        timezone:
+                          type: string
+                  message:
+                    type: string
+                  count:
+                    type: integer
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  page_size:
+                    type: integer
+  /core/user_sites:
+    get:
+      summary: List all user-site relationships
+      description: Retrieve a list of all user-site relationships
+      operationId: listUserSites
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: user_id
+          in: query
+          description: Filter by user ID
+          schema:
+            type: string
+        - name: site_id
+          in: query
+          description: Filter by site ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved user-site relationships
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        user:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            username:
+                              type: string
+                        site:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                        role:
+                          type: string
+                        is_primary:
+                          type: boolean
+                  message:
+                    type: string
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                    nullable: true
+                  previous:
+                    type: string
+                    nullable: true
+    post:
+      summary: Create a new user-site relationship
+      description: Create a new relationship between a user and a site
+      operationId: createUserSite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user
+                - site
+                - role
+              properties:
+                user:
+                  type: string
+                  description: ID of the user
+                site:
+                  type: string
+                  description: ID of the site
+                role:
+                  type: string
+                  description: User's role for this site
+                  enum: [admin, operator, viewer]
+                is_primary:
+                  type: boolean
+                  description: Whether this is the user's primary site
+                  default: false
+      responses:
+        '201':
+          description: User-site relationship created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          username:
+                            type: string
+                      site:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                      role:
+                        type: string
+                      is_primary:
+                        type: boolean
+                  message:
+                    type: string
+  /core/user_sites/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID of the user-site relationship
+        schema:
+          type: string
+    get:
+      summary: Get a specific user-site relationship
+      description: Retrieve details about a specific user-site relationship
+      operationId: getUserSite
+      responses:
+        '200':
+          description: Successfully retrieved user-site relationship
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          username:
+                            type: string
+                          email:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+                      site:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          location:
+                            type: string
+                      role:
+                        type: string
+                      is_primary:
+                        type: boolean
+                      created_at:
+                        type: string
+                      updated_at:
+                        type: string
+                  message:
+                    type: string
+    put:
+      summary: Update a user-site relationship
+      description: Update details of a specific user-site relationship
+      operationId: updateUserSite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  description: User's role for this site
+                  enum: [admin, operator, viewer]
+                is_primary:
+                  type: boolean
+                  description: Whether this is the user's primary site
+      responses:
+        '200':
+          description: User-site relationship updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          username:
+                            type: string
+                      site:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                      role:
+                        type: string
+                      is_primary:
+                        type: boolean
+                      created_at:
+                        type: string
+                      updated_at:
+                        type: string
+                  message:
+                    type: string
+    delete:
+      summary: Delete a user-site relationship
+      description: Delete a specific user-site relationship
+      operationId: deleteUserSite
+      responses:
+        '204':
+          description: User-site relationship deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                  message:
+                    type: string
+  /core/zones:
+    get:
+      summary: List all zones
+      description: Retrieve a list of all zones within the user's primary site
+      operationId: listZones
+      parameters:
+        - name: group_by_type
+          in: query
+          description: Group zones by their type in the response
+          schema:
+            type: boolean
+            default: false
+        - name: expand
+          in: query
+          description: Comma-separated list of related fields to expand
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved zones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    oneOf:
+                      - type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            type:
+                              type: string
+                            device_id:
+                              type: string
+                      - type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              name:
+                                type: string
+                              type:
+                                type: string
+                              device_id:
+                                type: string
+                  message:
+                    type: string
+                  count:
+                    type: integer
+  /core/devices:
+    get:
+      summary: List all devices
+      description: Retrieve a list of all devices within the user's primary site
+      operationId: listDevices
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: model
+          in: query
+          description: Filter devices by model
+          schema:
+            type: string
+        - name: zone
+          in: query
+          description: Filter devices by zone device_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved devices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        device_id:
+                          type: string
+                        model:
+                          type: string
+                  message:
+                    type: string
+                  count:
+                    type: integer
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  page_size:
+                    type: integer
+  /core/systems:
+    get:
+      summary: List all systems
+      description: Retrieve a list of all systems within the user's primary site
+      operationId: listSystems
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved systems
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        device_id:
+                          type: string
+                  message:
+                    type: string
+                  count:
+                    type: integer
+  /core/systems/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The unique device_id of the system
+        schema:
+          type: string
+    get:
+      summary: Get a specific system
+      description: Retrieve details about a specific system
+      operationId: getSystem
+      parameters:
+        - name: expand
+          in: query
+          description: Comma-separated list of related fields to expand
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved system
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      device_id:
+                        type: string
+                      type:
+                        type: string
+                  message:
+                    type: string
+  /core/systems/{id}/status:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The unique device_id of the system
+        schema:
+          type: string
+    get:
+      summary: Get system status
+      description: Retrieve the current status of a system
+      operationId: getSystemStatus
+      responses:
+        '200':
+          description: Successfully retrieved system status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      operational:
+                        type: boolean
+                      active_alarms:
+                        type: integer
+                      maintenance_due:
+                        type: boolean
+                      power_status:
+                        type: string
+                      operating_mode:
+                        type: string
+                  message:
+                    type: string
+  /auth/login:
+    post:
+      summary: Login to the system
+      description: Authenticate and receive a JWT token
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      refresh_token:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          username:
+                            type: string
+                          email:
+                            type: string
+                  message:
+                    type: string
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string 

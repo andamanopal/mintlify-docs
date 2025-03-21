@@ -1,0 +1,289 @@
+---
+title: 'Authentication'
+description: 'User management and access control for Alto CERO'
+---
+
+# Authentication
+
+The Authentication app handles user management, permissions, and API access control across the Alto CERO platform. It provides secure JWT-based authentication and comprehensive user management capabilities.
+
+## Key Features
+
+- User registration and management
+- JWT token-based authentication
+- Role-based access control
+- Password management
+- Session management
+
+## API Endpoints
+
+### Authentication
+
+<ParamField path="/api/auth/login/" method="POST">
+  Authenticate a user and receive an access token.
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "username": "admin",
+  "password": "password123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "first_name": "Admin",
+    "last_name": "User",
+    "roles": ["admin"],
+    "permissions": ["*"]
+  }
+}
+```
+
+<ParamField path="/api/auth/refresh/" method="POST">
+  Refresh an expired access token.
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+<ParamField path="/api/auth/logout/" method="POST">
+  Invalidate the current auth token.
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### User Management
+
+<ParamField path="/api/auth/user/" method="GET">
+  Get details about the current authenticated user.
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "id": 1,
+  "username": "admin",
+  "email": "admin@example.com",
+  "first_name": "Admin",
+  "last_name": "User",
+  "roles": ["admin"],
+  "permissions": ["*"],
+  "last_login": "2023-03-15T08:30:00Z",
+  "date_joined": "2022-01-01T00:00:00Z"
+}
+```
+
+<ParamField path="/api/auth/users/" method="GET">
+  List all users (admin only).
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "first_name": "Admin",
+      "last_name": "User",
+      "roles": ["admin"],
+      "is_active": true,
+      "last_login": "2023-03-15T08:30:00Z"
+    },
+    {
+      "id": 2,
+      "username": "operator",
+      "email": "operator@example.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "roles": ["operator"],
+      "is_active": true,
+      "last_login": "2023-03-14T10:15:00Z"
+    }
+  ]
+}
+```
+
+<ParamField path="/api/auth/register/" method="POST">
+  Register a new user (admin only).
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "securepassword",
+  "first_name": "New",
+  "last_name": "User",
+  "roles": ["viewer"]
+}
+```
+
+<ParamField path="/api/auth/users/{id}/" method="GET">
+  Get details for a specific user.
+</ParamField>
+
+<ParamField path="/api/auth/users/{id}/" method="PUT">
+  Update a user's details.
+</ParamField>
+
+<ParamField path="/api/auth/users/{id}/" method="DELETE">
+  Delete a user.
+</ParamField>
+
+### Password Management
+
+<ParamField path="/api/auth/change-password/" method="POST">
+  Change the current user's password.
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "old_password": "currentpassword",
+  "new_password": "newpassword123"
+}
+```
+
+<ParamField path="/api/auth/reset-password/" method="POST">
+  Request a password reset.
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+<ParamField path="/api/auth/reset-password-confirm/" method="POST">
+  Confirm a password reset with token.
+</ParamField>
+
+**Request Body:**
+
+```json
+{
+  "token": "reset-token-from-email",
+  "password": "newpassword123"
+}
+```
+
+## Roles and Permissions
+
+Alto CERO supports the following user roles:
+
+| Role | Description | Permissions |
+|------|-------------|-------------|
+| admin | System administrator | Full access to all features |
+| manager | Site manager | Manage sites and users, view all data, modify settings |
+| operator | System operator | Control equipment, view data, respond to alerts |
+| technician | Maintenance technician | View equipment status, record maintenance |
+| viewer | Read-only user | View data only, no modification permissions |
+
+## Code Example
+
+```javascript
+// Example: Login and retrieve user information
+async function loginUser(username, password) {
+  try {
+    // Authenticate user
+    const loginResponse = await fetch('/api/auth/login/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+    
+    if (!loginResponse.ok) {
+      throw new Error('Authentication failed');
+    }
+    
+    const { token, user } = await loginResponse.json();
+    
+    // Store token in localStorage
+    localStorage.setItem('auth_token', token);
+    
+    return {
+      isAuthenticated: true,
+      user
+    };
+  } catch (error) {
+    console.error('Login error:', error);
+    return {
+      isAuthenticated: false,
+      error: error.message
+    };
+  }
+}
+
+// Logout function
+async function logoutUser() {
+  try {
+    const token = localStorage.getItem('auth_token');
+    
+    if (!token) {
+      return { success: true };
+    }
+    
+    await fetch('/api/auth/logout/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    localStorage.removeItem('auth_token');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Logout error:', error);
+    return { 
+      success: false,
+      error: error.message
+    };
+  }
+}
+``` 
